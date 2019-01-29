@@ -9,9 +9,6 @@ $snifServer = $_SERVER['HTTP_HOST'];
 $snifDateFormat = 'd-m-y';
 $hiddenFilesRegex = Array();
 
-$useDescriptionsFrom = "descript.ion";
-$useDescriptionsFrom = "";  // en blanco para no usar
-
 $separationString = "\t";
 $useExternalImages = false;
 $externalIcons = Array (
@@ -34,7 +31,7 @@ $externalConfig = "";
 
 $descriptionFilenamesCaseSensitive = false;
 
-$usePaging = 0;
+$usePaging = 20;
 
 $directDirectoryLinks = false;
 
@@ -49,13 +46,10 @@ $displayColumns = Array(
 	"name",
 	"type",
 	"size",
-	"date",
-	"description"
+	"date"
 );
 
 $tableWidth100Percent = true;
-
-$descriptionColumnWidth = 0;
 
 $truncateLength = 30;
 
@@ -73,7 +67,6 @@ $languageStrings = Array(
 		"type" => "tipo", // column name in the file listing
 		"size" => "tama&ntilde;o", // column name in the file listing
 		"date" => "fecha", // column name in the file listing
-		"description" => "Descripci&oacute;n", // column name in the file listing
 		"DATEFORMAT" => $snifDateFormat, // special string, sets the format of the date (see http://www.php.net/manual/en/function.date.php)
 		"folder" => "directorio", // a folder in the file listing
 		"archive" => "archivo", // an archive file in the file listing
@@ -100,48 +93,9 @@ $languageStrings = Array(
 		"MB" => "MB", // abbreviation of megabyte ("3.4 MB")
 		"GB" => "GB", // abbreviation of gigabyte ("4.3 GB")
 		"TB" => "TB",  // abbreviation of terabyte ("820 TB")
-		"pages" => "p&aacute;ginas", // as in "4 pages"
-		"previous" => "anterior", // as in "previous page"
-		"next" => "siguiente" // as in "next page"
-	),
-	
-	// Spanish translation by Martinp and Genaro Paez
-	"es" => Array(
-		"Index of" => "Indice de",
-		"name" => "nombre", 
-		"type" => "tipo", 
-		"size" => "tama&ntilde;o", 
-		"date" => "fecha", 
-		"description" => "Descripci&oacute;n", 
-		"DATEFORMAT" => $snifDateFormat, 
-		"folder" => "directorio", 
-		"archive" => "archivo", 
-		"image" => "imagen", 
-		"text" => "texto", 
-		"HTML" => "HTML", 
-		"unknown" => "desconocido", 
-		"valid" => "valido", 
-		"binary" => "binario", 
-		"dirup" => "subir directorio", 
-		"download" => "descargar", 
-		"asc" => "ascendente", 
-		"desc" => "descendente", 
-		"[ back ]" => "[ atras ]", 
-		"1 item" => "1 objeto", 
-		"%d items" => "%d objetos", 
-		"%s is not a subdirectory of the current directory." => "%s no es un subdirectorio del directorio actual.", 
-		"File not found: %s" => "Archivo no encontrado: %s", 
-		"Illegal characters detected in URL, ignoring." => "Caract&eacute;res ilegales en la URL ha sido ignorados.",
-		"Illegal path specified, ignoring." => "Ruta ilegal especificada ha sido ignorada", 
-		"Bytes" => "", 
-		"B" => "B",
-		"KB" => "KB",
-		"MB" => "MB",
-		"GB" => "GB",
-		"TB" => "TB",
-		"pages" => "p&aacute;ginas",
-		"previous" => "anterior",
-		"next" => "siguiente"
+		"pages" => " P&aacute;ginas", // as in "4 pages"
+		"previous" => " Anterior", // as in "previous page"
+		"next" => " Siguiente" // as in "next page"
 	)
 );
 
@@ -239,18 +193,7 @@ if ($_GET["order"]=="") {
 	$_GET["order"] = strtolower($_GET["order"]);
 }
 
-// hide descriptions column if no description file is specified
-if ($useDescriptionsFrom=="") {
-	$index = array_search("description", $displayColumns);
-	if ($index!==false && $index!==null) {
-		unset($displayColumns[$index]);
-	}
-}
-	
-// add files used by snif to hidden file list
-if ($useDescriptionsFrom!="") {
-	$hiddenFilesWildcards[] = $useDescriptionsFrom;
-}
+
 if ($externalStylesheet!="") {
 	$hiddenFilesWildcards[] = $externalStylesheet;
 }
@@ -656,19 +599,6 @@ function getVersion($filename) {
 	return $version;
 }
 
-
-/**
- * Gets a file's description from the description array.
- **/
-function getDescription($filename) {
-	GLOBAL $descriptions, $descriptionFilenamesCaseSensitive;
-	
-	if (!$descriptionFilenamesCaseSensitive) {
-		$filename = strtolower($filename);
-	}
-	return $descriptions[$filename];
-}
-
 function getPageLink($startNumber, $linkText, $linkTitle="") {
 	GLOBAL $snifServer, $path;
 	$url = "http://".$snifServer.$_SERVER["PHP_SELF"]."?path=".$path."&sort=".$_GET["sort"]."&order=".$_GET["order"]."&start=".$startNumber;
@@ -706,9 +636,9 @@ function getPagingHeader() {
 			$header.= ".. ";
 		}
 		if ($pageNumber==$pagingActualPage) {
-			$header.= "<span class=\"snWhite\">".($pageNumber+1)."&nbsp;</span>";
+			$header.= "<span class=\"btn btn-info btn-xs\">&nbsp;".($pageNumber+1)."&nbsp;</span>";
 		} else {
-			$header.= getPageLink($pageNumber*$usePaging, $pageNumber+1);
+			$header.= "<span class=\"btn btn-primary btn-xs\">&nbsp;".getPageLink($pageNumber*$usePaging, $pageNumber+1)."&nbsp;</span>";
 		}
 	}
 	
@@ -792,21 +722,6 @@ if ($path!="") {
 } 
 $dir = dir(".");
 
-// parsing description file
-$descriptions = Array();
-if ($useDescriptionsFrom!="") {
-	$descriptionsFile = @file($useDescriptionsFrom);
-	if ($descriptionsFile!==false) {
-		for ($i=0;$i<count($descriptionsFile);$i++) {
-			$d = explode($separationString,$descriptionsFile[$i]);
-			if (!$descriptionFilenamesCaseSensitive) {
-				$d[0] = strtolower($d[0]);
-			}
-			$descriptions[$d[0]] = htmlentities(join($separationString, array_slice($d, 1)));
-		}
-	}
-}
-
 // build a two dimensional array containing the files in the chosen directory and their meta data
 $files = Array();
 while($entry = $dir->read()) {
@@ -829,7 +744,6 @@ while($entry = $dir->read()) {
 	$f["shortDate"] = date(translate("DATEFORMAT"), $fDate);
 	//setlocale(LC_ALL,"German");
 	//$f["shortDate"] = strftime("%x");
-	$f["description"] = getDescription($entry);
 	if ($f["isDirectory"]) {
 		$f["type"] = "&lt;DIR&gt;";
 		$f["size"] = "";
@@ -921,6 +835,30 @@ $pageEnd = min(count($files),$pageStart+$usePaging);
 
 
 
+/* ################################################################## */
+/* ################################################################## */
+/*
+    Function: PCO_Mensaje
+    Funcion generica para la presentacion de mensajes.  Ver variables para personalizacion.
+
+    Variables de entrada:
+
+        titulo - Texto que aparece en resaltado como encabezado del texto.  Acepta modificadores HTML.
+        texto - Mensaje completo a desplegar en formato de texto normal.  Acepta modificadores HTML.
+        icono - Formato Awesome Fonts o Iconos de Bootstrap
+        ancho - Ancho del espacio de trabajo definido en pixels o porcentaje sobre el contenedor principal.
+        estilo - Especifica el punto donde sera publicado el mensaje para definir la hoja de estilos correspondiente.
+*/
+function PCO_Mensaje($titulo,$texto,$icono,$estilo)
+    {
+        echo '<div class="'.$estilo.'" role="alert">
+            <i class="'.$icono.' pull-left"></i>
+            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">'.$MULTILANG_Cerrar.'</span></button>
+            <strong>'.$titulo.'</strong><br>'.$texto.'
+        </div>';
+    }
+
+
 /***************************************************************************/
 /**  HTML OUTPUT                                                          **/
 /***************************************************************************/
@@ -995,30 +933,7 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 			}
 			?>
 			
-			/*** FONTS ***/
-			.snif * {
-				font-family: Tahoma, Sans-Serif;
-				font-size: 10pt;
-			}
-			.snif a, a.snif {
-				text-decoration: none;
-			}
-			.snif a:hover, a.snif:hover {
-				text-decoration: underline;
-			}
-			.snCopyright * {
-				font-size: 8pt;
-			}
-			.snifSmaller {
-				font-weight: normal;
-				font-size: 8pt;
-			}
-			td.snDir {
-				font-weight: bold;
-			}
-			tr.snHeading, td.snHeading, td.snHeading a {
-				font-weight: bold;
-			}
+
 			
 			
 			/*** MARGINS AND POSITIONS ***/
@@ -1029,18 +944,8 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 				}
 				?>
 			}
-			table.snif td {
-				padding-left: 10px;
-				padding-right: 10px;
-			}
-			table.snif td.littlepadding {
-				padding-left: 4px;
-				padding-right: 0px;
-			}
-			td.snDir {
-				padding-top: 3px;
-				padding-bottom: 3px;
-			}
+
+
 			tr.snHeading, td.snHeading, td.snHeading a {
 				padding-top: 3px;
 				padding-bottom: 3px;
@@ -1064,12 +969,9 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 		<link   href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap.min.css"       rel="stylesheet" type="text/css">
 		<link   href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
 		<link   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"         rel="stylesheet" type="text/css">
-
 		<style type="text/css">
 			html,body{background:#272727}.navbar-xs{min-height:27px;height:27px;font-size:13px}.navbar-xs .navbar-brand{padding:0 12px;font-size:15px;line-height:27px}.navbar-xs .navbar-nav>li>a{padding-top:0;padding-bottom:0;line-height:27px}.navbar-xs .navbar-nav>li>ul>li{font-size:13px}.navbar-xs .navbar-nav>li>ul{background:darkgray}.navbar-nav>li>a,.navbar-brand{padding-top:0 !important;padding-bottom:0 !important;height:27px}.navbar{min-height:27px !important}.tooltip-inner{max-width:none;white-space:nowrap;font-size:10px}::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-button:start:decrement,::-webkit-scrollbar-button:end:increment{display:none}::-webkit-scrollbar-track-piece{background-color:#3b3b3b;-webkit-border-radius:6px}::-webkit-scrollbar-thumb:vertical{-webkit-border-radius:6px;background:#666 no-repeat center}::-webkit-scrollbar-thumb:horizontal{-webkit-border-radius:6px;background:#666 no-repeat center}::-webkit-scrollbar-corner{display:none}::-webkit-resizer{display:none}
 		</style>
-
-
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 	</head>
@@ -1104,10 +1006,9 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 							<!-- Collect the nav links, forms, and other content for toggling -->
 							<div class="collapse navbar-collapse" id="barra_menu_superior">
 								<ul class="nav navbar-nav">
-
 									<!-- MENU DE PAGINAS -->
 									<li class="dropdown">
-										<a style="cursor:pointer;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Archivo <span class="caret"></span></a>
+										<a style="cursor:pointer;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Explorador <span class="caret"></span></a>
 										<ul class="dropdown-menu">
 											<!--<li role="separator" class="divider"></li>-->
 											<li><a style="cursor:pointer;" OnClick="self.close();"><i class="fa fa-sign-out fa-fw"></i> Cerrar</a></li>
@@ -1126,7 +1027,7 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 									<li class="dropdown">
 										<a style="cursor:pointer;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-question-circle text-info"></i> <span class="caret"></span></a>
 										<ul class="dropdown-menu">
-											<li><a style="cursor:pointer;"><i class="fa fa-info fa-fw"></i> Acerca de</a></li>
+											<li><a style="cursor:pointer;"><i class="fa fa-info fa-fw"></i> Gu&iacute;a de configuraci&oacute;n</a></li>
 										</ul>
 									</li>
 								</ul>
@@ -1151,7 +1052,7 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 					<tr>
 						<td align="right">
 							<!-- NOTA COPYRIGHT	 -->
-							<font color="#CACACA" size=1><i><?php echo $MULTILANG_MonAcerca; ?></i>&nbsp;&nbsp;<br><br></font>
+							<font color="#CACACA" size=1><i>&copy; Explorador de archivos basado en <a href="http://www.practico.org"><b>Practico.org</b></a></i>&nbsp;&nbsp;<br><br></font>
 						</td>
 					</tr>
 					<tr>
@@ -1159,36 +1060,21 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
 
 
-				<!-- FINALIZA LA TABLA PRINCIPAL -->
-				</td></tr></table>
-
-			</div>
-		</DIV>
-	<!-- ################## FIN DE LA MAQUETACION ################## -->
 
 
-
-
-
-
-
-
-
-
-<div class="snif">
 
 
 <?php 
 if (count($displayError)>0) {
 	foreach($displayError AS $error) {
-		echo "<b style=\"color:red\">$error</b><br/>";
+		PCO_Mensaje("Error","$error","fa fa-2x fa-warning","alert alert-danger");
 	}
-	echo "<br/>";
 }
 ?>
-<table cellpadding="0" cellspacing="0" class="snif">
+<table cellpadding="0" cellspacing="0" width="93%"> <!-- class="snif" -->
 	<tr>
-		<td class="snDir" colspan="<?php echo count($displayColumns)?>">
+		<td class="alert alert-primary btn-xs" colspan="<?php echo count($displayColumns)?>"> <!-- class="snDir" -->
+			<i class="fa fa-folder-open fa-fw fa-1x"></i>&nbsp;
 			<?php 
 			$baseDirname = $snifServer.htmlentities(dirname($_SERVER["PHP_SELF"]));
 			$pathToSnif = explode("/",$baseDirname);
@@ -1197,10 +1083,9 @@ if (count($displayError)>0) {
 			$pathArr = explode("/",$path);
 			for ($i=0; $i<count($pathArr)-1; $i++) {
 				$dirLink = getPathLink(join("/",array_slice($pathArr, 0, $i+1)));
-				echo "/<a href=\"$dirLink\">".htmlentities($pathArr[$i])."</a>";
+				echo "&nbsp;/&nbsp;<a href=\"$dirLink\">".htmlentities($pathArr[$i])."</a>";
 			}
-			?><br/>
-			<span class="snifSmaller"><?php echo $descriptions["."];?></span>
+			?>
 		</td>
 	</tr>
 	<?php 
@@ -1275,11 +1160,6 @@ if (count($displayError)>0) {
 					</td>
 					<?php 
 					break;
-				case "description":
-					?>
-					<td class="snHeading"<?php if ($descriptionColumnWidth>0) echo " style=\"width:".$descriptionColumnWidth."px;\"";?>><?php echo translate("description");?></td>
-					<?php 
-					break;
 				case "cvsversion":
 					?>
 					<td class="snHeading"><?php echo translate("CVS");?></td>
@@ -1343,17 +1223,6 @@ if (count($displayError)>0) {
 					echo "</td>";
 					break;
 				
-				case "description":
-					?><td class="snW" style="white-space: normal;">
-					<?php 
-					if ($files[$i]["filetype"]=="image") {
-						echo $files[$i]["thumbnail"];
-					}
-					?>
-					<?php echo $files[$i]["description"];?>
-					</td><?php 
-					break;
-				
 				case "cvsversion":
 					echo "<td>";
 					echo $files[$i]["cvsversion"];
@@ -1377,10 +1246,15 @@ if (count($displayError)>0) {
 	}
 ?>
 </table>
-</div>
 
 
 
+
+				<!-- FINALIZA LA TABLA PRINCIPAL -->
+				</td></tr></table>
+			</div>
+		</DIV>
+	<!-- ################## FIN DE LA MAQUETACION ################## -->
 
 
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js"></script>
