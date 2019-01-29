@@ -1060,17 +1060,122 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 				white-space: normal;
 			}
 		</style>
+
+		<link   href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap.min.css"       rel="stylesheet" type="text/css">
+		<link   href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
+		<link   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"         rel="stylesheet" type="text/css">
+
+		<style type="text/css">
+			html,body{background:#272727}.navbar-xs{min-height:27px;height:27px;font-size:13px}.navbar-xs .navbar-brand{padding:0 12px;font-size:15px;line-height:27px}.navbar-xs .navbar-nav>li>a{padding-top:0;padding-bottom:0;line-height:27px}.navbar-xs .navbar-nav>li>ul>li{font-size:13px}.navbar-xs .navbar-nav>li>ul{background:darkgray}.navbar-nav>li>a,.navbar-brand{padding-top:0 !important;padding-bottom:0 !important;height:27px}.navbar{min-height:27px !important}.tooltip-inner{max-width:none;white-space:nowrap;font-size:10px}::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-button:start:decrement,::-webkit-scrollbar-button:end:increment{display:none}::-webkit-scrollbar-track-piece{background-color:#3b3b3b;-webkit-border-radius:6px}::-webkit-scrollbar-thumb:vertical{-webkit-border-radius:6px;background:#666 no-repeat center}::-webkit-scrollbar-thumb:horizontal{-webkit-border-radius:6px;background:#666 no-repeat center}::-webkit-scrollbar-corner{display:none}::-webkit-resizer{display:none}
+		</style>
+
+
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 	</head>
-<body class="snif">
+<body oncontextmenu="return false;">
 
 
-<table bgcolor="#455667" width="100%" cellpadding="0" cellspacing="0">
-	<tr>
-		<td colspan="<?php echo count($displayColumns)?>">
-				<div align="center"><strong><font size="4" face="Tahoma, Verdana, Arial" color="#FFFFFF">Unixlandia Storage Server > Archivos compartidos de usuario</font></strong></div>
-		</td>
-	</tr>
-</table>
+
+
+
+
+<!-- ################# INICIO DE LA MAQUETACION ################ -->
+
+
+		<div class="row">
+			<div class="col-md-12">
+
+				<div id="panel_superior" >
+					
+					<nav class="navbar navbar-default navbar-inverse navbar-xs" style="margin:0px; padding:0px;"> <!-- navbar-fixed-top navbar-fixed-bottom navbar-static-top navbar-inverse -->
+						<div class="container-fluid">
+							<!-- Logo y boton colapsable -->
+							<div class="navbar-header">
+								<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#barra_menu_superior" aria-expanded="false">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								</button>
+								<div class="navbar-brand text-primary"><b><i class="text-primary"><i class="fa fa-search text-primary">&nbsp;&nbsp;</i>Practico File Explorer</i></b></div>
+							</div>
+
+							<!-- Collect the nav links, forms, and other content for toggling -->
+							<div class="collapse navbar-collapse" id="barra_menu_superior">
+								<ul class="nav navbar-nav">
+
+									<!-- MENU DE PAGINAS -->
+									<li class="dropdown">
+										<a style="cursor:pointer;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Archivo <span class="caret"></span></a>
+										<ul class="dropdown-menu">
+											<!--<li role="separator" class="divider"></li>-->
+											<li><a style="cursor:pointer;" OnClick="self.close();"><i class="fa fa-sign-out fa-fw"></i> Cerrar</a></li>
+										</ul>
+									</li>
+
+									<!-- BOTONES INDEPENDIENTES
+									<li><a style="cursor:pointer;" OnClick="EstadoPausa=1;" data-toggle="tooltip" data-placement="bottom" title="Pausa en esta ventana / Pause this window"><i class="fa fa-pause fa-fw text-danger "></i> <?php echo $MULTILANG_Pausar; ?></a></li>
+									<li><a style="cursor:pointer;" OnClick="document.formulario_monitoreo.Pagina.value='<?php echo $PaginaMonitoreo; ?>'; document.formulario_monitoreo.PaginaRecuerrente.value='<?php echo $PaginaMonitoreo; ?>';" data-toggle="tooltip" data-placement="bottom" title="Permanecer y actualizar solo esta pagina / Stay and upgrade only this page"><i class="fa fa-refresh fa-fw text-warning "></i> <?php echo $MULTILANG_Recurrente; ?></a></li>
+									<li><a style="cursor:pointer;" OnClick="document.formulario_monitoreo.Pagina.value=(document.formulario_monitoreo.Pagina.value)*1-1; EstadoPausa=0; document.formulario_monitoreo.PaginaRecuerrente.value=''; actualizar();" data-toggle="tooltip" data-placement="bottom" title="Continuar monitoreo / Resume monitoring"><i class="fa fa-play fa-fw text-success"></i> <?php echo $MULTILANG_Continuar; ?></a></li>
+									<li><a data-toggle="tooltip" data-placement="bottom" title="Tiempo antes de saltar / Time before jump"><i class="fa fa-clock-o fa-fw text-info"></i> <div id="MarcoCronometro" style="display: inline!important;">0s</div></a></li>
+									-->
+								</ul>
+
+								<ul class="nav navbar-nav navbar-right">
+									<li class="dropdown">
+										<a style="cursor:pointer;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-question-circle text-info"></i> <span class="caret"></span></a>
+										<ul class="dropdown-menu">
+											<li><a style="cursor:pointer;"><i class="fa fa-info fa-fw"></i> Acerca de</a></li>
+										</ul>
+									</li>
+								</ul>
+
+							</div><!-- /.navbar-collapse -->
+						</div><!-- /.container-fluid -->
+					</nav>
+
+				</div><!-- /.contenedor -->
+
+			</div>
+		</div>
+
+
+
+
+		<DIV class="row">
+			<div class="col-md-12" style="margin:0px;">
+
+				<!-- INICIA LA TABLA PRINCIPAL -->
+				<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="color:white;">
+					<tr>
+						<td align="right">
+							<!-- NOTA COPYRIGHT	 -->
+							<font color="#CACACA" size=1><i><?php echo $MULTILANG_MonAcerca; ?></i>&nbsp;&nbsp;<br><br></font>
+						</td>
+					</tr>
+					<tr>
+						<td width="100%" height="100%" valign="TOP" align="center">
+
+
+
+				<!-- FINALIZA LA TABLA PRINCIPAL -->
+				</td></tr></table>
+
+			</div>
+		</DIV>
+	<!-- ################## FIN DE LA MAQUETACION ################## -->
+
+
+
+
+
+
+
+
+
+
+<div class="snif">
 
 
 <?php 
@@ -1272,5 +1377,12 @@ if (count($displayError)>0) {
 	}
 ?>
 </table>
+</div>
+
+
+
+
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>
