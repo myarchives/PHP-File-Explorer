@@ -2,147 +2,19 @@
 $hiddenFilesWildcards = Array("*.php", "*~");
 $allowSubDirs = true;
 $allowPHPDownloads = false;
-$useAutoThumbnails = true;
-$cacheThumbnails = false;
 $snifServer = $_SERVER['HTTP_HOST'];
-//$snifServer = 'www.yourdomain.com';
-$snifDateFormat = 'd-m-y';
 $hiddenFilesRegex = Array();
 
 $separationString = "\t";
-$useExternalImages = false;
-$externalIcons = Array (
-	"archive"	=> "",
-	"binary"	=> "",
-	"dirup"   => "",
-	"folder"	=> "",
-	"HTML"		=> "",
-	"image"		=> "",
-	"text"		=> "",
-	"unknown"	=> "",
-	"download"	=> "",   // 7x16 pixels
-	"asc"		=> "",       // 5x3 pixels
-	"desc"		=> ""      // 5x3 pixels
-);
-
-$externalStylesheet = "";
-
-$externalConfig = "";
 
 $descriptionFilenamesCaseSensitive = false;
 
-$usePaging = 20;
-
-$directDirectoryLinks = false;
-
-$thumbnailHeight = 50;
-$thumbnailWidth = 150;
-
-$useBackForDirUp = true;
-
-$displayColumns = Array(
-	"download",
-	"icon",
-	"name",
-	"type",
-	"size",
-	"date"
-);
-
-$tableWidth100Percent = true;
-
-$truncateLength = 30;
-
 $protectDirsWithHtaccess = true;
-
-$alwaysUseLanguage = "";
-
-$languageStrings = Array(
-	"en" => Array(
-		// only serves as the default language, no translations needed
-		// if you don't translate a string, the english version will be used
-		
-		"Index of" => "Indice de", // displayed in the page title
-		"name" => "nombre", // column name in the file listing
-		"type" => "tipo", // column name in the file listing
-		"size" => "tama&ntilde;o", // column name in the file listing
-		"date" => "fecha", // column name in the file listing
-		"DATEFORMAT" => $snifDateFormat, // special string, sets the format of the date (see http://www.php.net/manual/en/function.date.php)
-		"folder" => "directorio", // a folder in the file listing
-		"archive" => "archivo", // an archive file in the file listing
-		"image" => "imagen", // an image file in the file listing
-		"text" => "texto", // a text file in the file listing
-		"HTML" => "HTML", // an archive file in the file listing
-		"unknown" => "desconocido", // an unknown file in the file listing
-		"valid" => "valido", // used for "valid XHTML, valid CSS"
-		"binary" => "binario", // a binary file
-		"dirup" => "subir directorio", // tooltip of the .. folder icon
-		"download" => "descargar", // tooltip of the download icon to the left
-		"asc" => "ascendente", // sort in ascending order
-		"desc" => "descendente", // sort in descending order
-		"[ back ]" => "[ atras ]", // special name displayed for the .. folder
-		"1 item" => "1 objeto", // displayed when a subdirectory contains exactly one file or directory
-		"%d items" => "%d objetos", // 0 items, 42 items; displays the number of files and directories in a subdirectory. Leave %d as it is.
-		"%s is not a subdirectory of the current directory." => "%s no es un subdirectorio del directorio actual.", // leave %s as it is, it is replaced by the directory name
-		"File not found: %s" => "Archivo no encontrado: %s",  // leave %s as it is, it is replaced by the file name
-		"Illegal characters detected in URL, ignoring." => "Caract&eacute;res ilegales en la URL ha sido ignorados.", // displayed when an URL parameter contains HTML special characters
-		"Illegal path specified, ignoring." => "Ruta ilegal especificada ha sido ignorada", // displayed when the path URL parameter contains a potentially dangerous path
-		"Bytes" => "", // appended to the exact file size in the tooltip ("462 Bytes")
-		"B" => "B", // abbreviation of Bytes ("462 B")
-		"KB" => "KB", // abbreviation of kilobyte ("12.4 KB")
-		"MB" => "MB", // abbreviation of megabyte ("3.4 MB")
-		"GB" => "GB", // abbreviation of gigabyte ("4.3 GB")
-		"TB" => "TB",  // abbreviation of terabyte ("820 TB")
-		"pages" => " P&aacute;ginas", // as in "4 pages"
-		"previous" => " Anterior", // as in "previous page"
-		"next" => " Siguiente" // as in "next page"
-	)
-);
-
-
 
 
 /***************************************************************************/
 /**  REAL CODE STARTS HERE, NO NEED TO CHANGE ANYTHING                    **/
 /***************************************************************************/
-
-
-/***************************************************************************/
-/**  TRANSLATION                                                          **/
-/***************************************************************************/
-
-function translate($string) {
-	GLOBAL $languageStrings, $alwaysUseLanguage;
-	static $requestLanguage;
-	
-	if ($requestLanguage=="") {
-		$validLanguages = array_keys($languageStrings);
-		if ($alwaysUseLanguage!="" && in_array($alwaysUseLanguage, $validLanguages)) {
-			$requestLanguage = $alwaysUseLanguage;
-		} else {
-			if ($requestLanguage == "") {
-				$acceptLanguages = explode(",", $_SERVER["HTTP_ACCEPT_LANGUAGE"]);
-				for ($i=0; $i<count($acceptLanguages) AND $requestLanguage==""; $i++) {
-					$al = substr($acceptLanguages[$i],0,2);
-					if (in_Array($al,$validLanguages)) {
-						$requestLanguage = $al;
-					}
-				}
-				if ($requestLanguage=="") {
-					$requestLanguage = $validLanguages[0];
-				}
-			}
-		}
-	}
-	
-	$stringTranslated = $languageStrings[$requestLanguage][$string];
-	if ($stringTranslated!="") {
-		return $stringTranslated;
-	} else {
-		return $string;
-	}
-}
-
 
 /***************************************************************************/
 /**  INITIALIZATION                                                       **/
@@ -157,19 +29,12 @@ $displayError = Array();
 foreach($_GET AS $key => $value) {
 	$_GET[$key] = strip_tags($value);
 	if ($_GET[$key] != $value) {
-		$displayError[] = translate("Illegal characters detected in URL, ignoring.");
+		$displayError[] = "Caracteres ilegales detectados en la URL.  Ignorando.";
 	}
 	if (!get_magic_quotes_gpc()) {
 		$_GET[$key] = stripslashes($value);
 	}
 }
-
-
-// read external config file
-if ($externalConfig!="") {
-	include($externalConfig);
-}
-
 
 // first of all, security: prevent any unauthorized paths
 // if sub directories are forbidden, ignore any path setting
@@ -193,14 +58,10 @@ if ($_GET["order"]=="") {
 	$_GET["order"] = strtolower($_GET["order"]);
 }
 
-
-if ($externalStylesheet!="") {
-	$hiddenFilesWildcards[] = $externalStylesheet;
-}
 $hiddenFilesWildcards[] = ".";
 $hiddenFilesWildcards[] = basename($_SERVER["PHP_SELF"]);
 
-// build hidden files regular expression
+// Construye expresion regular para archivos ocultos
 for ($i=0;$i<count($hiddenFilesWildcards);$i++) {
 	$translate = Array(
 		"." => "\\.",
@@ -219,7 +80,7 @@ for ($i=0;$i<count($hiddenFilesWildcards);$i++) {
 	);
 	$hiddenFilesRegex[] = "^".strtr($hiddenFilesWildcards[$i],$translate)."$";
 }
-// hide .*
+// Oculta .*
 $hiddenFilesRegex[] = "^\\.[^.].*$";
 $hiddenFilesWholeRegex = "/".join("|",$hiddenFilesRegex)."/i";
 
@@ -228,113 +89,6 @@ $hiddenFilesWholeRegex = "/".join("|",$hiddenFilesRegex)."/i";
 /***************************************************************************/
 /**  REQUEST HANDLING                                                     **/
 /***************************************************************************/
-
-// handle image requests
-if ($_GET["getimage"]!="") {
-	$imagesEncoded = Array(
-		"archive"  => "R0lGODlhEAAQAJECAAAAAP///////wAAACH5BAEAAAIALAAAAAAQABAAAAI3lA+pxxgfUhNKPRAbhimu2kXiRUGeFwIlN47qdlnuarokbG46nV937UO9gDMHsMLAcSYU0GJSAAA7",
-		"asc"      => "R0lGODlhBQADAIABAN3d3f///yH5BAEAAAEALAAAAAAFAAMAAAIFTGAHuF0AOw==",
-		"binary"   => "R0lGODlhEAAQAJECAAAAAP///////wAAACH5BAEAAAIALAAAAAAQABAAAAI0lICZxgYBY0DNyfhAfROrxoVQBo5mpzFih5bsFLoX5iLYWK6xyur5ubPAbhPZrKhSKCmCAgA7",
-		"desc"     => "R0lGODlhBQADAIABAN3d3f///yH5BAEAAAEALAAAAAAFAAMAAAIFhB0XC1sAOw==",
-		"dirup"    => "R0lGODlhEAAQAJECAAAAAP///////wAAACH5BAEAAAIALAAAAAAQABAAAAIulI+JwKAJggzuiThl2wbnT3WZN4oaA1bYRobXCLpkq5nnVr9xqe85C2xYhkRFAQA7",
-		"folder"   => "R0lGODlhEAAQAJECAAAAAP///////wAAACH5BAEAAAIALAAAAAAQABAAAAIplI+JwKAJggzuiThl2wbnT3UgWHmjJp5Tqa5py7bhJc/mWW46Z/V+UgAAOw==",
-		"HTML"     => "R0lGODlhEAAQAKIHABsb/2ho/4CA/0BA/zY2/wAAAP///////yH5BAEAAAcALAAAAAAQABAAAANEeFfcrVAVQ6thUdo6S57b9UBgSHmkyUWlMAzCmlKxAZ9s5Q5AjWqGwIAS8OVsNYJxJgDwXrHfQoVLEa7Y6+Wokjq+owQAOw==",
-		"image"    => "R0lGODlhEAAQAKIEAK6urmRkZAAAAP///////wAAAAAAAAAAACH5BAEAAAQALAAAAAAQABAAAANCSCTcrVCJQetgUdo6RZ7b9UBgSHnkAKwscEZTy74pG9zuBavA7dOanu+H0gyGxN0RGdClKEjgwvKTlkzFhWOLISQAADs=",
-		"text"     => "R0lGODlhEAAQAJECAAAAAP///////wAAACH5BAEAAAIALAAAAAAQABAAAAI0lICZxgYBY0DNyfhAfXcuxnWQBnoKMjXZ6qUlFroWLJHzGNtHnat87cOhRkGRbGc8npakAgA7",
-		"download" => "R0lGODlhBwAQAIABAAAAAP///yH5BAEAAAEALAAAAAAHABAAAAISjI+pywb6UkQzgHsPls3h2gUFADs=",
-		"blank"    => "R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",
-		"unknown"  => "R0lGODlhEAAQAJECAAAAAP///////wAAACH5BAEAAAIALAAAAAAQABAAAAI1lICZxgYBY0DNyfhAfXcuxnkI1nCjB2lgappld6qWdE4vFtprR+4sffv1ZjwdkSc7KJYUQQEAOw=="
-	);
-	$imageDataEnc = $imagesEncoded[$_GET["getimage"]];
-	if ($imageDataEnc) {
-		$maxAge = 31536000; // one year
-		doConditionalGet($_GET["getimage"], gmmktime(1,0,0,1,1,2004));
-		$imageDataRaw = base64_decode($imageDataEnc);
-		Header("Content-Type: image/gif");
-		Header("Content-Length: ".strlen($imageDataRaw));
-		Header("Cache-Control: public, max-age=$maxAge, must-revalidate");
-		Header("Expires: ".createHTTPDate(time()+$maxAge));
-		echo $imageDataRaw;
-	}
-	
-	die();
-}
-
-// handle thumbnail creation
-if ($_GET["thumbnail"]!="") {
-	GLOBAL $thumbnailHeight, $cacheThumbnails;
-	$thumbnailCacheSubdir = ".snifthumbs";
-	
-	$file = safeDirectory(urldecode($_GET["thumbnail"]));
-	doConditionalGet($_GET["thumbnail"],filemtime($file));
-
-	$thumbDir = dirname($file)."/".$thumbnailCacheSubdir;
-	$thumbFile = $thumbDir."/".basename($file);
-	if ($cacheThumbnails) {
-		if (file_exists($thumbDir)) {
-			if (!is_dir($thumbDir)) {
-				$cacheThumbnails = false;
-			}
-		} else {
-			if (@mkdir($thumbDir)) {
-				chmod($thumbDir, "0777");
-			} else {
-				$cacheThumbnails = false;
-			}
-		}
-		if (file_exists($thumbFile)) {
-			if (filemtime($thumbFile)>=filemtime($file)) {
-				Header("Location: ".dirname($_SERVER["PHP_SELF"])."/".$thumbFile);
-				die();
-			}
-		}
-	}
-	$contentType = "";
-	$extension = strtolower(substr(strrchr($file, "."), 1));
-	switch ($extension) {
-		case "gif":		$src = imagecreatefromgif($file); $contentType="image/gif"; break;
-		case "jpg":		// fall through
-		case "jpeg":	$src = imagecreatefromjpeg($file); $contentType="image/jpeg"; break;
-		case "png":		$src = imagecreatefrompng($file); $contentType="image/png"; break;
-		default:	die(); break;
-	}
-	$srcWidth = imagesx($src);
-	$srcHeight = imagesy($src);
-	$srcAspectRatio = $srcWidth / $srcHeight;
-	
-	$maxAge = 3600; // one hour
-	Header("Cache-Control: public, max-age=$maxAge, must-revalidate");
-	Header("Expires: ".createHTTPDate(time()+$maxAge));
-
-	if ($srcHeight<=$thumbnailHeight AND $srcWidth<=$thumbnailWidth) {
-		Header("Content-Type: $contentType");
-		readfile($file);
-	} else {
-		if ($srcWidth > $srcHeight) {
-			$thumbWidth = $thumbnailWidth;
-			$thumbHeight = $thumbWidth / $srcAspectRatio;
-		} else {
-			$thumbHeight = $thumbnailHeight;
-			$thumbWidth = $thumbHeight * $srcAspectRatio;
-		}
-		if (function_exists('imagecreatetruecolor')) {
-			$thumb = imagecreatetruecolor($thumbWidth, $thumbHeight);
-		} else {
-			$thumb = imagecreate($thumbWidth, $thumbHeight);
-		} 
-		imagecopyresampled($thumb, $src, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $srcWidth, $srcHeight);
-		Header("Content-Type: image/jpeg");
-		if ($cacheThumbnails) {
-			imagejpeg($thumb, $thumbFile);
-			chmod($thumbFile, "0777");
-			readfile($thumbFile);
-		} else {
-			imagejpeg($thumb);
-		}
-	}
-	die();
-}
-
 // handle download requests
 if ($_GET["download"]!="") {
 	$download = stripslashes($_GET["download"]);
@@ -345,7 +99,7 @@ if ($_GET["download"]!="") {
 		OR (substr(strtolower($filename), -4)==".php" AND !$allowPHPDownloads)) {
 		
 		Header("HTTP/1.0 404 Not Found");
-		$displayError[] = sprintf(translate("File not found: %s"), $filename);
+		$displayError[] = sprintf("Archivo no encontrado: %s", $filename);
 	} else {
 		//doConditionalGet($filename, filemtime($filename));
 		Header("Content-Length: ".filesize($filename));
@@ -357,7 +111,6 @@ if ($_GET["download"]!="") {
 }
 
 
-
 /***************************************************************************/
 /**  FUNCTIONS                                                            **/
 /***************************************************************************/
@@ -366,7 +119,6 @@ if ($_GET["download"]!="") {
 function createHTTPDate($time) {
 	return gmdate("D, d M Y H:i:s", $time)." GMT";
 }
-
 
 // this function is from http://simon.incutio.com/archive/2003/04/23/conditionalGet
 function doConditionalGet($file, $timestamp) {
@@ -407,24 +159,24 @@ function safeDirectory($path) {
 		$result = "";
 	}
 	if ($result!=$path) {
-		$displayError[] = translate("Illegal path specified, ignoring.");
+		$displayError[] = "Se ha detectado una ruta de sistema ilegal, Ignorando.";
 	}
 	return $result;
 }
 
 
 /**
- * Formats a file's size nicely (750 B, 3.4 KB etc.)
+ * Formatea el tamano de archivo en unidades comprensibles (750 B, 3.4 KB etc.)
  **/
 function niceSize($size) {
 	define("SIZESTEP", 1024.0);
 	static $sizeUnits = Array();
 	if (count($sizeUnits)==0) {
-		$sizeUnits[] = "&nbsp;".translate("B");
-		$sizeUnits[] = translate("KB");
-		$sizeUnits[] = translate("MB");
-		$sizeUnits[] = translate("GB");
-		$sizeUnits[] = translate("TB");
+		$sizeUnits[] = "&nbsp;B";
+		$sizeUnits[] = "KB";
+		$sizeUnits[] = "MB";
+		$sizeUnits[] = "GB";
+		$sizeUnits[] = "TB";
 	}
 	
 	if ($size==="")
@@ -522,10 +274,10 @@ function getFileType($fileInfo) {
 		"HTML"		=> Array("html","htm"),
 		"image"		=> Array("gif","jpg","jpeg","png","tif","tiff","bmp","art"),
 		"text"		=> Array("asp","c","cfg","cpp","css","csv","conf","cue","diz","h","inf","ini","java","js","log","nfo","php","phps","pl","py","rdf","rss","rtf","sql","txt","vbs","xml"),
-		//"code"		=> Array("asp","c","cpp","h","java","js","php","phps","pl","py","sql","vbs"),
-		//"xml"			=> Array("rdf","rss","xml"),
+		"code"		=> Array("asp","c","cpp","h","java","js","php","phps","pl","py","sql","vbs"),
+		"xml"		=> Array("rdf","rss","xml"),
 		"binary"	=> Array("asf","au","avi","bin","class","divx","doc","exe","mov","mpg","mpeg","mp3","ogg","ogm","pdf","ppt","ps","rm","swf","wmf","wmv","xls"),
-		//"document"=> Array("doc","pdf","ppt","ps","rtf","xls"),
+		"document"  => Array("doc","pdf","ppt","ps","rtf","xls"),
 		"archive"	=> Array("ace","arc","bz2","cab","gz","lha","jar","rar","sit","tar","tbz2","tgz","z","zip","zoo")
 	);
 	static $extensions = null;
@@ -550,15 +302,6 @@ function getFileType($fileInfo) {
 		return "unknown";
 	} else {
 		return $type;
-	}
-}
-
-function getIcon($fileType) {
-	GLOBAL $useExternalImages, $externalIcons;
-	if ($useExternalImages && $externalIcons[$fileType]!="") {
-		return $externalIcons[$fileType];
-	} else {
-		return $_SERVER["PHP_SELF"]."?getimage=$fileType";
 	}
 }
 
@@ -590,111 +333,9 @@ function fileIsHidden($filename) {
 	return preg_match($hiddenFilesWholeRegex,$filename);
 }
 
-
-function getVersion($filename) {
-	$version = "&ndash;";
-	$contents = file_get_contents($filename);
-	$no_matches = preg_match("/Id: (\S+) (\d+.\d+)/i", $contents, $matches);
-	if ($no_matches>0) $version = $matches[2];
-	return $version;
-}
-
-function getPageLink($startNumber, $linkText, $linkTitle="") {
-	GLOBAL $snifServer, $path;
-	$url = "http://".$snifServer.$_SERVER["PHP_SELF"]."?path=".$path."&sort=".$_GET["sort"]."&order=".$_GET["order"]."&start=".$startNumber;
-	if ($linkTitle!="") {
-		$titleAttribute = " title=\"$linkTitle\"";
-	} else {
-		$titleAttribute = "";
-	}
-	return "<a href=\"$url\"$titleAttribute>$linkText</a>&nbsp;";
-}
-
-function getPagingHeader() {
-	GLOBAL $pageStart, $usePaging, $pagingNumberOfPages, $pagingActualPage, $pageNumber, $files;
-	static $displayPages = Array();
-	if (count($displayPages)==0) {
-		$displayPages[] = 0;
-		for ($i=$pagingActualPage-1; $i<$pagingActualPage+3; $i++) {
-			if ($i>=0 && $i<$pagingNumberOfPages) {
-				$displayPages[] = $i;
-			}
-		}
-		$displayPages[] = $pagingNumberOfPages-1;
-		$displayPages = array_unique($displayPages);
-	}
-	
-	$header = translate("pages")."&nbsp;&nbsp;";
-	if ($pageStart>0) {
-		$header.= getPageLink($pageStart-$usePaging, "&laquo;", translate("previous"));
-	}
-	if ($pageStart+$usePaging<count($files)) {
-		$header.= getPageLink($pageStart+$usePaging, "&raquo;", translate("next"));
-	}
-	foreach($displayPages as $i => $pageNumber) {
-		if ($pageNumber-$displayPages[$i-1] > 1) {
-			$header.= ".. ";
-		}
-		if ($pageNumber==$pagingActualPage) {
-			$header.= "<span class=\"btn btn-info btn-xs\">&nbsp;".($pageNumber+1)."&nbsp;</span>";
-		} else {
-			$header.= "<span class=\"btn btn-primary btn-xs\">&nbsp;".getPageLink($pageNumber*$usePaging, $pageNumber+1)."&nbsp;</span>";
-		}
-	}
-	
-	return $header;
-}
-
 function getPathLink($directory) {
-	GLOBAL $directDirectoryLinks;
-	if ($directDirectoryLinks) {
-		return $directory."/";
-	} else {
-		return $_SERVER["PHP_SELF"]."?path=".urlEncode($directory)."/";
-	}
+	return $_SERVER["PHP_SELF"]."?path=".urlEncode($directory)."/";
 }
-
-/**
- * Truncates a string to a certain length at the most sensible point.
- * First, if there's a '.' character near the end of the string, the string is truncated after this character.
- * If there is no '.', the string is truncated after the last ' ' character.
- * If the string is truncated, " ..." is appended.
- * If the string is already shorter than $length, it is returned unchanged.
- * 
- * @static
- * @param string    string A string to be truncated.
- * @param int        length the maximum length the string should be truncated to
- * @return string    the truncated string
- */
-function iTrunc($string, $length) {
-	if ($length==0) {
-		return $string;
-	}
-	if (strlen($string)<=$length) {
-		return $string;
-	}
-	
-	$pos = strrpos($string,".");
-	if ($pos>=$length-4) {
-		$string = substr($string,0,$length-4);
-		$pos = strrpos($string,".");
-	}
-	if ($pos>=$length*0.4) {
-		return substr($string,0,$pos+1)."...";
-	}
-	
-	$pos = strrpos($string," ");
-	if ($pos>=$length-4) {
-		$string = substr($string,0,$length-4);
-		$pos = strrpos($string," ");
-	}
-	if ($pos>=$length*0.4) {
-		return substr($string,0,$pos)."...";
-	}
-	
-	return substr($string,0,$length-4)."...";
-}
-
 
 function getDirSize($dirname) {
 	$dir = dir($dirname);
@@ -703,7 +344,7 @@ function getDirSize($dirname) {
 		if (!fileIsHidden($dirname."/".$filename)) 
 			$fileCount++;
 	}
-	return $fileCount-2; // . and .. do not count
+	return $fileCount-2; // no incluye . y ..
 }
 
 
@@ -716,7 +357,7 @@ function getDirSize($dirname) {
 if ($path!="") {
 	$hidden = fileIsHidden(substr($path,0,-1));
 	if ($hidden || !@chdir($path)) {
-		$displayError[] = sprintf(translate("%s is not a subdirectory of the current directory."), $path);
+		$displayError[] = sprintf("%s no es un subdirectorio del directorio actual.", $path);
 		$path = "";
 	}
 } 
@@ -741,7 +382,7 @@ while($entry = $dir->read()) {
 	$fDate = @filemtime($entry);
 	$f["date"] = $fDate;
 	$f["fullDate"] = date("r", $fDate);
-	$f["shortDate"] = date(translate("DATEFORMAT"), $fDate);
+	$f["shortDate"] = date("Y-m-d H:m", $fDate);
 	//setlocale(LC_ALL,"German");
 	//$f["shortDate"] = strftime("%x");
 	if ($f["isDirectory"]) {
@@ -766,15 +407,13 @@ while($entry = $dir->read()) {
 				$f["link"] = $_SERVER["PHP_SELF"]."?path=".urlEncode($link);
 			}
 			$f["isBack"] = true;
-			if ($useBackForDirUp) {
-				$f["displayName"] = translate("[ back ]");
-			}
+			$f["displayName"] = "[ Subir un directorio ]";
 		} else {
 			$filesInDir = getDirSize($entry);
 			if ($filesInDir==1) {
-				$f["niceSize"] = translate("1 item");
+				$f["niceSize"] = "1 item";
 			} else {
-				$f["niceSize"] = sprintf(translate("%d items"),$filesInDir);
+				$f["niceSize"] = sprintf("%d items",$filesInDir);
 			}
 			$f["link"] = getPathLink($path.$entry);
 		}
@@ -800,19 +439,12 @@ while($entry = $dir->read()) {
 			$pi = pathinfo($entry);
 			$f["type"] = $pi["extension"];
 			$f["link"] = myEncode($path,$entry);
-			if (in_array("cvsversion", $displayColumns)) {
-				$f["cvsversion"] = getVersion($entry);
-			}
 		}
 	}
 	if (!$f["isBack"]) {
-		$f["displayName"] = htmlentities(iTrunc($f["name"], $truncateLength));
+		$f["displayName"] = htmlentities($f["name"]);
 	}
 	$f["filetype"] = getFileType($f);
-	$f["icon"] = getIcon($f["filetype"]);
-	if ($useAutoThumbnails && $f["filetype"]=="image") {
-		$f["thumbnail"] = "<a href=\"".urldecode($f["link"])."\"><img src=\"".$PHP_SELF."?thumbnail=".urlencode($path.$f["name"])."\" style=\"text-align: left;\" alt=\"\"/></a>";
-	}
 
 	$files[] = $f;
 }
@@ -820,18 +452,7 @@ while($entry = $dir->read()) {
 usort($files, "myCompare");
 
 
-$pagingInEffect = $usePaging>0 && count($files)>$usePaging;
-if ($usePaging>0) {
-	$pageStart = $_GET["start"];
-	if ($pageStart=="" || $pageStart<0 || $pageStart>count($files))
-		$pageStart = 0;
-	$pagingActualPage = floor($pageStart / $usePaging);
-	$pagingNumberOfPages = ceil(count($files) / $usePaging);
-} else {
-	$pageStart = 0;
-	$usePaging = count($files);
-}
-$pageEnd = min(count($files),$pageStart+$usePaging);
+
 
 
 
@@ -846,7 +467,6 @@ $pageEnd = min(count($files),$pageStart+$usePaging);
         titulo - Texto que aparece en resaltado como encabezado del texto.  Acepta modificadores HTML.
         texto - Mensaje completo a desplegar en formato de texto normal.  Acepta modificadores HTML.
         icono - Formato Awesome Fonts o Iconos de Bootstrap
-        ancho - Ancho del espacio de trabajo definido en pixels o porcentaje sobre el contenedor principal.
         estilo - Especifica el punto donde sera publicado el mensaje para definir la hoja de estilos correspondiente.
 */
 function PCO_Mensaje($titulo,$texto,$icono,$estilo)
@@ -863,8 +483,6 @@ function PCO_Mensaje($titulo,$texto,$icono,$estilo)
 /**  HTML OUTPUT                                                          **/
 /***************************************************************************/
 
-$columns = count($displayColumns);
-
 Header("Content-Type: text/html; charset=UTF-8");
 echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 ?>
@@ -872,20 +490,10 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<title>VirtualDisk - Unixlandia.com</title>
-		<?php 
-		if ($externalStylesheet!="") {
-			?>
-			<link rel="stylesheet" type="text/css" href="<?php echo $externalStylesheet?>" />
-			<?php 
-		}
-		?>
+		<title>Practico File Explorer</title>
 		<style type="text/css">
 		
 			/*** COLORS ***/
-			<?php 
-			if ($externalStylesheet=="") {
-			?>
 			body.snif {
 				background: #344556;             /* background behind table */
 			}
@@ -923,27 +531,6 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 			tr.snF td {
 				color: #444444;                  /* file listing text color */
 			}
-			.snCopyright * {
-				color: #bbbbbb;                  /* copyright notice text color */
-			}
-			.snWhite {
-				color: white;                    /* active page in paging header */
-			}
-			<?php 
-			}
-			?>
-			
-
-			
-			
-			/*** MARGINS AND POSITIONS ***/
-			table.snif {
-				<?php 
-				if ($tableWidth100Percent) {
-					echo "width:100%;";
-				}
-				?>
-			}
 
 
 			tr.snHeading, td.snHeading, td.snHeading a {
@@ -957,9 +544,6 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 				padding-left: 10px;
 				padding-right: 10px;
 				white-space: nowrap;
-			}
-			.snif img {
-				border:none;
 			}
 			.snW {
 				white-space: normal;
@@ -994,12 +578,6 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 						<div class="container-fluid">
 							<!-- Logo y boton colapsable -->
 							<div class="navbar-header">
-								<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#barra_menu_superior" aria-expanded="false">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								</button>
 								<div class="navbar-brand text-primary"><b><i class="text-primary"><i class="fa fa-search text-primary">&nbsp;&nbsp;</i>Practico File Explorer</i></b></div>
 							</div>
 
@@ -1050,12 +628,6 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 				<!-- INICIA LA TABLA PRINCIPAL -->
 				<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="color:white;">
 					<tr>
-						<td align="right">
-							<!-- NOTA COPYRIGHT	 -->
-							<font color="#CACACA" size=1><i>&copy; Explorador de archivos basado en <a href="http://www.practico.org"><b>Practico.org</b></a></i>&nbsp;&nbsp;<br><br></font>
-						</td>
-					</tr>
-					<tr>
 						<td width="100%" height="100%" valign="TOP" align="center">
 
 
@@ -1071,10 +643,10 @@ if (count($displayError)>0) {
 	}
 }
 ?>
-<table cellpadding="0" cellspacing="0" width="93%"> <!-- class="snif" -->
+<table cellpadding="0" cellspacing="0"  width="93%">
 	<tr>
-		<td class="alert alert-primary btn-xs" colspan="<?php echo count($displayColumns)?>"> <!-- class="snDir" -->
-			<i class="fa fa-folder-open fa-fw fa-1x"></i>&nbsp;
+		<td class="btn-xs" colspan="5"> <!-- class="snDir" -->
+			<br><i class="fa fa-folder-open fa-fw fa-1x"></i>&nbsp;
 			<?php 
 			$baseDirname = $snifServer.htmlentities(dirname($_SERVER["PHP_SELF"]));
 			$pathToSnif = explode("/",$baseDirname);
@@ -1088,170 +660,96 @@ if (count($displayError)>0) {
 			?>
 		</td>
 	</tr>
-	<?php 
-	if ($pagingInEffect) {
-	?>
-	<tr class="snHeading">
-		<td class="snHeading" colspan="<?php echo count($displayColumns)?>">
+
+	<tr>
+		<td class="snHeading littlepadding">&nbsp;</td>
+		<td class="snHeading">
+			<a href="<?php echo getNewSortURL("name");?>">Nombre</a>
 			<?php 
-			echo getPagingHeader();
+			$sort = $_GET["sort"];
+			if ($sort=="name")
+				echo "<i class='fa fa-fw fa-sort'></i>";
 			?>
 		</td>
+		<td class="snHeading">
+			<a href="<?php echo getNewSortURL("type");?>">Tipo</a>
+			<?php 
+			if ($sort=="type")
+				echo "<i class='fa fa-fw fa-sort'></i>";
+			?>
+		</td>
+		<td class="snHeading" align="right">
+			<?php 
+			if ($sort=="size")
+				echo "<i class='fa fa-fw fa-sort'></i>";
+			?>
+			<a href="<?php echo getNewSortURL("size");?>">Tama&ntilde;o&nbsp;</a>
+		</td>
+		<td class="snHeading" align="center">
+			<a href="<?php echo getNewSortURL("date");?>">&nbsp;Fecha</a>
+			<?php 
+			if ($sort=="date")
+				echo "<i class='fa fa-fw fa-sort'></i>";
+			?>
+		</td>
+
 	</tr>
-<?php 
-	}
-?>
-	<tr class="snHeading">
-		<?php 
-		foreach($displayColumns AS $column) {
-			switch ($column) {
-				case "download":
-					?>
-					<td class="snHeading littlepadding">&nbsp;</td>
-					<?php 
-					break;
-				case "icon":
-					?>
-					<td class="snHeading littlepadding">&nbsp;</td>
-					<?php 
-					break;
-				case "name":
-					?>
-					<td class="snHeading">
-						<!--<img src="<?php echo $PHP_SELF?>?getimage=blank" alt="" width="30" height="16" style="vertical-align:middle;"/>--><a href="<?php echo getNewSortURL("name");?>"><?php echo translate("name");?></a>
-						<?php 
-						$sort = $_GET["sort"];
-						if ($sort=="name")
-							echo "<img src=\"".getIcon($_GET["order"])."\" width=\"5\" height=\"3\" style=\"vertical-align:middle;\" alt=\"".translate($_GET["order"])."\"/>";
-						?>
-					</td>
-					<?php 
-					break;
-				case "type":
-					?>
-					<td class="snHeading">
-						<a href="<?php echo getNewSortURL("type");?>"><?php echo translate("type");?></a>
-						<?php 
-						if ($sort=="type")
-							echo "<img src=\"".getIcon($_GET["order"])."\" width=\"5\" height=\"3\" style=\"vertical-align:middle;\" alt=\"".translate($_GET["order"])."\"/>";
-						?>
-					</td>
-					<?php 
-					break;
-				case "size":
-					?>
-					<td class="snHeading" align="right">
-						<?php 
-						if ($sort=="size")
-							echo "<img src=\"".getIcon($_GET["order"])."\" width=\"5\" height=\"3\" style=\"vertical-align:middle;\" alt=\"".translate($_GET["order"])."\"/>";
-						?>
-						<a href="<?php echo getNewSortURL("size");?>"><?php echo translate("size");?></a>
-					</td>
-					<?php 
-					break;
-				case "date":
-					?>
-					<td class="snHeading">
-						<a href="<?php echo getNewSortURL("date");?>"><?php echo translate("date");?></a>
-						<?php 
-						if ($sort=="date")
-							echo "<img src=\"".getIcon($_GET["order"])."\" width=\"5\" height=\"3\" style=\"vertical-align:20%;\" alt=\"".translate($_GET["order"])."\"/>";
-						?>
-					</td>
-					<?php 
-					break;
-				case "cvsversion":
-					?>
-					<td class="snHeading"><?php echo translate("CVS");?></td>
-					<?php 
-					break;
-			}
-		}
-		?>
-	</tr>
+	
 	<?php 
-	for ($i=$pageStart;$i<$pageEnd;$i++) {
+	//Recorre el arreglo de archivos
+	for ($i=0;$i<min(count($files),count($files));$i++) {
 	?>
 	<tr class="snF <?php echo ($i%2==0) ? "snEven" : "snOdd"?>">
 		<?php 
-		foreach($displayColumns AS $column) {
-			switch ($column) {
-				case "download":
-					echo "<td class=\"littlepadding\">";
-					if ($files[$i]["isDirectory"] OR !$files[$i]["isDownloadable"]) {
-					?>
-						<img src="<?php echo $PHP_SELF?>?getimage=blank" alt="" width="7" height="16" style="vertical-align:middle;"/>
-					<?php 
-					} else {
-					?>
-						<a href="<?php echo $PHP_SELF?>?path=<?php echo rawurlencode($path)?>&amp;download=<?php echo rawurlencode($files[$i]["name"]);?>"><img src="<?php echo getIcon("download")?>" alt="<?php echo translate("download");?>" title="<?php echo translate("download");?>" width="7" height="16" style="vertical-align:middle;"/></a>
-					<?php 
-					}
-					echo "</td>";
-					break;
-				case "icon":
-					echo "<td class=\"littlepadding\">";
-					?>
-					<a href="<?php echo $files[$i]["link"];?>" title="<?php echo htmlentities($files[$i]["name"]);?>"><img src="<?php echo $files[$i]["icon"]?>" alt="" title="<?php echo translate($files[$i]["filetype"])?>" width="16" height="16" style="vertical-align:middle;"/></a>
-					<?php 
-					echo "</td>";
-					break;
-				case "name":
-					echo "<td>";
-					?><a href="<?php echo $files[$i]["link"];?>" title="<?php echo htmlentities($files[$i]["name"]);?>"><?php 
-					echo $files[$i]["displayName"]."&nbsp;</a>";
-					echo "</td>";
-					break;
-				
-				case "type":
-					echo "<td>";
-					echo $files[$i]["type"];
-					echo "</td>";
-					break;
-				
-				case "size":
-					echo "<td align=\"right\">";
-					if ($files[$i]["fullSize"]!="") echo "	<span title=\"".$files[$i]["fullSize"]." ".translate("Bytes")."\">";
-					echo $files[$i]["niceSize"];
-					if ($files[$i]["fullSize"]!="") echo "  </span>";
-					echo "</td>";
-					break;
-				
-				case "date":
-					echo "<td>";
-					echo "<span title=\"".$files[$i]["fullDate"]."\">".$files[$i]["shortDate"]."</span>";
-					echo "</td>";
-					break;
-				
-				case "cvsversion":
-					echo "<td>";
-					echo $files[$i]["cvsversion"];
-					echo "</td>";
-					break;
+		
+			//DESCARGA
+			echo "<td>";
+			if ($files[$i]["isDirectory"] OR !$files[$i]["isDownloadable"]) {
+				echo '<i class="fa fa-fw fa-folder" style="color:orange"></i>';
+			} else {
+			?>
+				<a href="<?php echo $PHP_SELF?>?path=<?php echo rawurlencode($path)?>&amp;download=<?php echo rawurlencode($files[$i]["name"]);?>"><i class="fa fa-fw fa-download"></i></a>
+			<?php 
 			}
-		}
+			echo "</td>";
+			
+			//NOMBRE
+			echo "<td>";
+			?><a href="<?php echo $files[$i]["link"];?>"><?php 
+			echo $files[$i]["displayName"]."&nbsp;</a>";
+			echo "</td>";
+
+			//TIPO
+			echo "<td>";
+			echo $files[$i]["type"];
+			echo "</td>";
+
+			//TAMANO
+			echo "<td align=\"right\">";
+			if ($files[$i]["fullSize"]!="") echo "	<span title=\"".$files[$i]["fullSize"]." Bytes\">";
+			echo $files[$i]["niceSize"];
+			if ($files[$i]["fullSize"]!="") echo "  </span>";
+			echo "</td>";
+
+			//FECHA
+			echo "<td align='center'>";
+			echo "<span title=\"".$files[$i]["fullDate"]."\">".$files[$i]["shortDate"]."</span>";
+			echo "</td>";
 		?>
 	</tr><?php 
 	}
-	if ($pagingInEffect) {
 	?>
-	<tr class="snHeading">
-		<td class="snHeading" colspan="<?php echo $columns?>">
-			<?php 
-			echo getPagingHeader();
-			?>
-		</td>
-	</tr>
-<?php 
-	}
-?>
 </table>
 
-
-
-
 				<!-- FINALIZA LA TABLA PRINCIPAL -->
-				</td></tr></table>
+				</td></tr>
+				<tr>
+					<td align="center">
+						<!-- NOTA COPYRIGHT	 -->
+						<br><font color="#CACACA" size=1><i>&copy; Explorador de archivos basado en <a href="http://www.practico.org"><b>Practico.org</b></a></i>&nbsp;&nbsp;<br><br></font>
+					</td>
+				</tr>				
+				</table>
 			</div>
 		</DIV>
 	<!-- ################## FIN DE LA MAQUETACION ################## -->
