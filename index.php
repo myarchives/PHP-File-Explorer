@@ -1,6 +1,7 @@
 <?php 
     // Inicio de la sesion
     @session_start();
+    date_default_timezone_set('America/Bogota');
     
 	//PARAMETROS BASICOS DE CONFIGURACION
 	$UsarLoginUsuarios=true;				//Activa o desactiva necesidad de login
@@ -10,18 +11,16 @@
 	$ServidorBD="localhost";
 	$UsuarioBD="MyUser";
 	$PasswordBD="MyPasswordBD";
-
+	$ElementosOcultos = Array("MiArchivo.Ext","MiCarpetaOculta");
+	$CalcularTamanoDirectorios=true; //Para carpetas con miles de elementos puede tardar
+	
 	/*
 		SCRIPT SIMPLIFICADO DE BASE DE DATOS (Si aplica)
 		
 		CREATE DATABASE pcofe;
 		USE pcofe;
 		DROP TABLE IF EXISTS usuarios;
-		CREATE TABLE usuarios (
-		  login varchar(250) NOT NULL,
-		  clave varchar(250) NOT NULL,
-		  PRIMARY KEY  (login)
-		);
+		CREATE TABLE usuarios ( login varchar(250) NOT NULL, clave varchar(250) NOT NULL, PRIMARY KEY  (login) );
 		
 		Actualice el siguiente INSERT por el valor de usuario y clave deseado o agregue mas si aplica
 		INSERT INTO usuarios VALUES ('admin','admin');
@@ -40,7 +39,7 @@
 $hiddenFilesWildcards = Array();
 $allowSubDirs = true;
 $snifServer = $_SERVER['HTTP_HOST'];
-$hiddenFilesRegex = Array();
+$hiddenFilesRegex = $ElementosOcultos;
 $separationString = "\t";
 $descriptionFilenamesCaseSensitive = false;
 $protectDirsWithHtaccess = true;
@@ -442,12 +441,20 @@ while($entry = $dir->read()) {
 			$f["isBack"] = true;
 			$f["displayName"] = "[ Subir un directorio ]";
 		} else {
-			$filesInDir = getDirSize($entry);
-			if ($filesInDir==1) {
-				$f["niceSize"] = "1 item";
-			} else {
-				$f["niceSize"] = sprintf("%d items",$filesInDir);
-			}
+			if ($CalcularTamanoDirectorios)
+				{
+					$filesInDir = getDirSize($entry);
+					if ($filesInDir==1) {
+						$f["niceSize"] = "1 item";
+					} else {
+						$f["niceSize"] = sprintf("%d items",$filesInDir);
+					}
+				}
+			else
+				{
+					$f["niceSize"] = "Sin calcular";
+				}
+			
 			$f["link"] = getPathLink($path.$entry);
 		}
 	} else {
