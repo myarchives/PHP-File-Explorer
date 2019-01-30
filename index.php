@@ -11,8 +11,11 @@
 	$ServidorBD="localhost";
 	$UsuarioBD="MyUser";
 	$PasswordBD="MyPasswordBD";
+	$CalcularTamanoDirectorios=true; 		//Para carpetas con miles de elementos puede tardar
+	$DirectorioInicial=".";					//Donde comienza la navegacion del script
+	$PermitirSubdirectorios = true;
 	$ElementosOcultos = Array("MiArchivo.Ext","MiCarpetaOculta");
-	$CalcularTamanoDirectorios=true; //Para carpetas con miles de elementos puede tardar
+	
 	
 	/*
 		SCRIPT SIMPLIFICADO DE BASE DE DATOS (Si aplica)
@@ -36,8 +39,8 @@
 /***************************************************************************/
 /**  INICIO DEL CODIGO DE APLICACION                                      **/
 /***************************************************************************/
+chdir($DirectorioInicial);
 $hiddenFilesWildcards = Array();
-$allowSubDirs = true;
 $snifServer = $_SERVER['HTTP_HOST'];
 $hiddenFilesRegex = $ElementosOcultos;
 $separationString = "\t";
@@ -66,7 +69,7 @@ foreach($_GET AS $key => $value) {
 
 // first of all, security: prevent any unauthorized paths
 // if sub directories are forbidden, ignore any path setting
-if (!$allowSubDirs) {
+if (!$PermitirSubdirectorios) {
 	$path = "";
 } else {
 	$path = $_GET["path"];
@@ -122,25 +125,27 @@ if ($_GET["cerrar_sesion"]!="") {
 	header('Location: '.$_SERVER["PHP_SELF"]);
 }
 
-// handle download requests
-if ($_GET["download"]!="") {
-	$download = stripslashes($_GET["download"]);
-	$filename = safeDirectory($path.rawurldecode($download));
-	if (
-		!file_exists($filename)
-		OR fileIsHidden($filename)) {
-		
-		Header("HTTP/1.0 404 Not Found");
-		$displayError[] = sprintf("Archivo no encontrado: %s", $filename);
-	} else {
-		//doConditionalGet($filename, filemtime($filename));
-		Header("Content-Length: ".filesize($filename));
-		Header("Content-Type: application/x-download");
-		Header("Content-Disposition: attachment; filename=\"".rawurlencode($download)."\"");
-		readfile($filename);
-		die();
+// captura solicitud de descarga siempre y cuando tenga activa la sesion
+if ($_GET["download"]!="") 
+	if (isset($_SESSION["PCOSESS_LoginUsuario"]))
+	{
+		$download = stripslashes($_GET["download"]);
+		$filename = safeDirectory($path.rawurldecode($download));
+		if (
+			!file_exists($filename)
+			OR fileIsHidden($filename)) {
+			
+			Header("HTTP/1.0 404 Not Found");
+			$displayError[] = sprintf("Archivo no encontrado: %s", $filename);
+		} else {
+			//doConditionalGet($filename, filemtime($filename));
+			Header("Content-Length: ".filesize($filename));
+			Header("Content-Type: application/x-download");
+			Header("Content-Disposition: attachment; filename=\"".rawurlencode($download)."\"");
+			readfile($filename);
+			die();
+		}
 	}
-}
 
 
 /***************************************************************************/
@@ -403,7 +408,7 @@ while($entry = $dir->read()) {
 		continue;
 		
 	// if the file is a directory and if directories are forbidden, skip it
-	if (!$allowSubDirs AND is_dir($entry))
+	if (!$PermitirSubdirectorios AND is_dir($entry))
 		continue;
 	
 	$f = Array();
@@ -816,12 +821,12 @@ if (isset($_SESSION["PCOSESS_LoginUsuario"]))
 <table cellpadding="0" cellspacing="0"  width="93%">
 	<tr>
 		<td class="btn-xs" colspan="5"> <!-- class="snDir" -->
-			<br><i class="fa fa-folder-open fa-fw fa-1x"></i>&nbsp;
+			<br>
 			<?php 
 			$baseDirname = $snifServer.htmlentities(dirname($_SERVER["PHP_SELF"]));
 			$pathToSnif = explode("/",$baseDirname);
 			//echo "http://".join("/",array_slice($pathToSnif, 0, -1))."/";
-			echo "<a href=\"".dirname($_SERVER["PHP_SELF"])."/\">".join("/",array_slice($pathToSnif, -1))."</a>";
+			echo "<a href=\"".$_SERVER["PHP_SELF"]."/\"><i class='fa fa-folder-open fa-fw fa-1x'></i>Ra&iacute;z&nbsp;".join("/",array_slice($pathToSnif, -1))."</a>";
 			$pathArr = explode("/",$path);
 			for ($i=0; $i<count($pathArr)-1; $i++) {
 				$dirLink = getPathLink(join("/",array_slice($pathArr, 0, $i+1)));
@@ -884,9 +889,12 @@ if (isset($_SESSION["PCOSESS_LoginUsuario"]))
 			echo "</td>";
 			
 			//NOMBRE
-			echo "<td>";
-			?><a href="<?php echo $files[$i]["link"];?>"><?php 
-			echo $files[$i]["displayName"]."&nbsp;</a>";
+			echo "<td>"; 
+					if ($files[$i]["isDirectory"])
+						echo '<a href="'.$files[$i]["link"].'">';
+					echo $files[$i]["displayName"];
+					if ($files[$i]["isDirectory"])
+						echo "</a>";
 			echo "</td>";
 
 			//TIPO
