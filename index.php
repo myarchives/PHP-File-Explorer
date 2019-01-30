@@ -37,9 +37,8 @@
 /***************************************************************************/
 /**  INICIO DEL CODIGO DE APLICACION                                      **/
 /***************************************************************************/
-$hiddenFilesWildcards = Array("*.php", "*~");
+$hiddenFilesWildcards = Array();
 $allowSubDirs = true;
-$allowPHPDownloads = false;
 $snifServer = $_SERVER['HTTP_HOST'];
 $hiddenFilesRegex = Array();
 $separationString = "\t";
@@ -130,8 +129,7 @@ if ($_GET["download"]!="") {
 	$filename = safeDirectory($path.rawurldecode($download));
 	if (
 		!file_exists($filename)
-		OR fileIsHidden($filename)
-		OR (substr(strtolower($filename), -4)==".php" AND !$allowPHPDownloads)) {
+		OR fileIsHidden($filename)) {
 		
 		Header("HTTP/1.0 404 Not Found");
 		$displayError[] = sprintf("Archivo no encontrado: %s", $filename);
@@ -306,10 +304,10 @@ function getFileType($fileInfo) {
 	// put any additional extensions in here
 	$extension = $fileInfo["type"];
 	static $fileTypes = Array(
-		"HTML"		=> Array("html","htm"),
+		//"HTML"		=> Array("html","htm"),
 		"image"		=> Array("gif","jpg","jpeg","png","tif","tiff","bmp","art"),
 		"text"		=> Array("asp","c","cfg","cpp","css","csv","conf","cue","diz","h","inf","ini","java","js","log","nfo","php","phps","pl","py","rdf","rss","rtf","sql","txt","vbs","xml"),
-		"code"		=> Array("asp","c","cpp","h","java","js","php","phps","pl","py","sql","vbs"),
+		//"code"		=> Array("asp","c","cpp","h","java","js","php","phps","pl","py","sql","vbs"),
 		"xml"		=> Array("rdf","rss","xml"),
 		"binary"	=> Array("asf","au","avi","bin","class","divx","doc","exe","mov","mpg","mpeg","mp3","ogg","ogm","pdf","ppt","ps","rm","swf","wmf","wmv","xls"),
 		"document"  => Array("doc","pdf","ppt","ps","rtf","xls"),
@@ -412,7 +410,7 @@ while($entry = $dir->read()) {
 	$f = Array();
 
 	$f["name"] = $entry;
-	$f["isDownloadable"] = (substr(strtolower($entry), -4)!=".php") || $allowPHPDownloads;
+	$f["isDownloadable"] = 1; //Asume que todo es descargable
 	$f["isDirectory"] = is_dir($entry);
 	$fDate = @filemtime($entry);
 	$f["date"] = $fDate;
