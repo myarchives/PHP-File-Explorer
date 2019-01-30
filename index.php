@@ -1,23 +1,53 @@
 <?php 
+    // Inicio de la sesion
+    @session_start();
+    
+	//PARAMETROS BASICOS DE CONFIGURACION
+	$UsarLoginUsuarios=true;				//Activa o desactiva necesidad de login
+	$MotorBD="mysql";						//Si desea otros motores amplie funcion segun Practico Framework
+	$PuertoBD="";
+	$BaseDatos="pcofe";
+	$ServidorBD="localhost";
+	$UsuarioBD="MyUser";
+	$PasswordBD="MyPasswordBD";
+
+	/*
+		SCRIPT SIMPLIFICADO DE BASE DE DATOS (Si aplica)
+		
+		CREATE DATABASE pcofe;
+		USE pcofe;
+		DROP TABLE IF EXISTS usuarios;
+		CREATE TABLE usuarios (
+		  login varchar(250) NOT NULL,
+		  clave varchar(250) NOT NULL,
+		  PRIMARY KEY  (login)
+		);
+		
+		Actualice el siguiente INSERT por el valor de usuario y clave deseado o agregue mas si aplica
+		INSERT INTO usuarios VALUES ('admin','admin');
+
+		CREATE USER 'MyUser'@'localhost' IDENTIFIED BY 'MyPasswordBD';
+		CREATE USER 'MyUser'@'%' IDENTIFIED BY 'MyPasswordBD';
+		GRANT SELECT ON pcofe.usuarios TO 'MyUser'@'localhost';
+		GRANT SELECT ON pcofe.usuarios TO 'MyUser'@'%';
+	*/
+
+
+
+/***************************************************************************/
+/**  INICIO DEL CODIGO DE APLICACION                                      **/
+/***************************************************************************/
 $hiddenFilesWildcards = Array("*.php", "*~");
 $allowSubDirs = true;
 $allowPHPDownloads = false;
 $snifServer = $_SERVER['HTTP_HOST'];
 $hiddenFilesRegex = Array();
-
 $separationString = "\t";
-
 $descriptionFilenamesCaseSensitive = false;
-
 $protectDirsWithHtaccess = true;
 
-
 /***************************************************************************/
-/**  REAL CODE STARTS HERE, NO NEED TO CHANGE ANYTHING                    **/
-/***************************************************************************/
-
-/***************************************************************************/
-/**  INITIALIZATION                                                       **/
+/**  INITIALIZACION                                                       **/
 /***************************************************************************/
 
 // make sure all the notices don't come up in some configurations
@@ -85,10 +115,15 @@ $hiddenFilesRegex[] = "^\\.[^.].*$";
 $hiddenFilesWholeRegex = "/".join("|",$hiddenFilesRegex)."/i";
 
 
-
 /***************************************************************************/
 /**  REQUEST HANDLING                                                     **/
 /***************************************************************************/
+// captura solicitud de cierre
+if ($_GET["cerrar_sesion"]!="") {
+	@session_destroy();
+	header('Location: '.$_SERVER["PHP_SELF"]);
+}
+
 // handle download requests
 if ($_GET["download"]!="") {
 	$download = stripslashes($_GET["download"]);
@@ -473,11 +508,74 @@ function PCO_Mensaje($titulo,$texto,$icono,$estilo)
     {
         echo '<div class="'.$estilo.'" role="alert">
             <i class="'.$icono.' pull-left"></i>
-            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">'.$MULTILANG_Cerrar.'</span></button>
+            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only"></span></button>
             <strong>'.$titulo.'</strong><br>'.$texto.'
         </div>';
     }
+ 
+ 
+/* ################################################################## */
+/* ################################################################## */
+/*
+	Function: PCOFE_NuevaConexionBD
+	Crea una nueva conexion a un motor de base de datos y retorna la variable en cuestion para ser utilizada
+	
+	Variables de entrada:
 
+		- PCOConnMotorBD: Tipo de motor utilizado
+		- PCOConnPuertoBD: Puerto de conexion (opcional)
+		- PCOConnBaseDatos: Nombre de la base de datos a conectar
+		- PCOConnServidorBD: Host o servidor que ofrece el servicio
+		- PCOConnUsuarioBD: Usuario con privilegios para accesar la base de datos
+		- PCOConnPasswordBD: Clave del usuario que accesa el motor
+
+	Salida:
+		Retorna variable llamada ConexionPDO con la conexion establecida
+*/
+	function PCOFE_NuevaConexionBD($PCOConnMotorBD,$PCOConnPuertoBD,$PCOConnBaseDatos,$PCOConnServidorBD,$PCOConnUsuarioBD,$PCOConnPasswordBD)
+		{
+			try
+				{
+					// Crea la conexion de acuerdo al tipo de motor
+					if ($PCOConnMotorBD=="mysql")
+						{
+							// Si no se ha definido un numero de puerto
+							if ($PCOConnPuertoBD=="")
+								$ConexionPDO = new PDO("mysql:dbname=$PCOConnBaseDatos;host=$PCOConnServidorBD","$PCOConnUsuarioBD","$PCOConnPasswordBD");
+							else
+								$ConexionPDO = new PDO("mysql:dbname=$PCOConnBaseDatos;host=$PCOConnServidorBD;port=$PCOConnPuertoBD","$PCOConnUsuarioBD","$PCOConnPasswordBD");
+						}
+
+					// Evita el SQLSTATE[HY000]: General error. presentado por PostgreSQL.  Se habilita solo para MySQL
+					if ($PCOConnMotorBD=="mysql" || $PCOConnMotorBD=="sqlite")
+						{
+							// Establece parametros para la conexion
+							$ConexionPDO->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+						}
+					
+					if ($PCOConnMotorBD=="mysql")
+						{
+							$ConexionPDO->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8'");
+							$ConexionPDO->exec("SET NAMES 'utf8';");
+							$ConexionPDO->exec("SET NAMES utf8;"); //Forzado UTF8 - Collation recomendada: utf8_general_ci
+							//Evita el "General error: 2014 Cannot execute queries while other unbuffered queries are active"
+							$ConexionPDO->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+						}
+					
+					//Retorna la variable de conexion creada
+					return $ConexionPDO;
+				}
+			catch( PDOException $ErrorPDO)
+				{
+					$mensaje_final.="<div class='alert alert-danger alert-dismissible btn-xs' role='alert'>
+					  <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+						<span aria-hidden='true'><i class='fa fa-eye-slash fa-fw'></i></span>
+					  </button>
+					<i class='fa fa-database fa-fw fa-3x fa-pull-left text-danger '></i>";
+					$mensaje_final.="<strong>Error en tiempo de ejecucion:</strong> <br>";
+					echo $mensaje_final.'<b>Detalles:</b><i> '.$ErrorPDO->getMessage().'</i></div>';
+				}
+		}
 
 /***************************************************************************/
 /**  HTML OUTPUT                                                          **/
@@ -589,7 +687,7 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 										<a style="cursor:pointer;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Explorador <span class="caret"></span></a>
 										<ul class="dropdown-menu">
 											<!--<li role="separator" class="divider"></li>-->
-											<li><a style="cursor:pointer;" OnClick="self.close();"><i class="fa fa-sign-out fa-fw"></i> Cerrar</a></li>
+											<li><a style="cursor:pointer;" href="<?php echo $_SERVER["PHP_SELF"]; ?>?cerrar_sesion=1"><i class="fa fa-sign-out fa-fw"></i> Cerrar</a></li>
 										</ul>
 									</li>
 
@@ -635,6 +733,68 @@ echo "<?php xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
 
 
+<?php 
+	if (!isset($_SESSION["PCOSESS_LoginUsuario"]) && $UsarLoginUsuarios==true)
+		{
+			//Presenta login o lo evalua en caso de recibir los datos
+			if ($_POST["LoginUsuario"]!="" && $_POST["ClaveUsuario"]!="")
+				{
+						//Genera la conexion inicial del sistema
+						$ConexionPDO=PCOFE_NuevaConexionBD($MotorBD,$PuertoBD,$BaseDatos,$ServidorBD,$UsuarioBD,$PasswordBD);
+
+						$consulta = $ConexionPDO->prepare("SELECT login FROM usuarios WHERE login='".$_POST["LoginUsuario"]."' AND clave='".$_POST["ClaveUsuario"]."' ");
+						$consulta->execute();
+						$registro=$consulta->fetch();
+						//Verifica si hay registro del usuario
+						if ($registro["login"]!="")
+							$_SESSION["PCOSESS_LoginUsuario"]=(string)$registro["login"];
+						else
+							{
+								$MensajeError="<br><br><br><font color=yellow><b><i class='fa fa-warning'></i> Usuario o clave incorrectos</b></font>";
+								$_POST["LoginUsuario"]="";
+							}
+				}
+			
+			
+			if ($_POST["LoginUsuario"]=="" || $_POST["ClaveUsuario"]=="")
+				{
+					echo $MensajeError;
+					//Si no recibe usuario y clave presenta ventana de login
+					?>
+						<br><br>
+						<div class="panel alert-info" style="width:20%;">							
+							<div class="panel-body">
+								<form action="<?php echo $_SERVER["PHP_SELF"]; ?>" autocomplete="off" method="post">
+									<br>
+									<div class="input-group">
+										<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+										<input type="text" class="form-control" name="LoginUsuario" placeholder="Usuario">
+									</div>
+									<br>
+									<div class="input-group">
+										<span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+										<input type="password" class="form-control" name="ClaveUsuario" placeholder="Clave">
+									</div>
+									<br>
+									<button type="submit" id="sendlogin" class="btn btn-primary">Ingresar <i class="fa fa-arrow-right fa-fw"></i></button>
+								</form>
+							</div>
+						</div>
+					<?php
+				}
+		}
+	else
+		{
+			//Si el control de usuarios esta desactivado agrega a la sesion el usuario anonimo
+			if ($UsarLoginUsuarios==false)
+				{
+					$_SESSION["PCOSESS_LoginUsuario"]=(string)"Anonimo";
+				}
+		}
+
+?>
+
+
 
 <?php 
 if (count($displayError)>0) {
@@ -642,6 +802,11 @@ if (count($displayError)>0) {
 		PCO_Mensaje("Error","$error","fa fa-2x fa-warning","alert alert-danger");
 	}
 }
+
+
+if (isset($_SESSION["PCOSESS_LoginUsuario"]))
+{
+	
 ?>
 <table cellpadding="0" cellspacing="0"  width="93%">
 	<tr>
@@ -740,6 +905,9 @@ if (count($displayError)>0) {
 	}
 	?>
 </table>
+<?php
+} //Fin si hay sesion:  PCOSESS_LoginUsuario
+?>
 
 				<!-- FINALIZA LA TABLA PRINCIPAL -->
 				</td></tr>
